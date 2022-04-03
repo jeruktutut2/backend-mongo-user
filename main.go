@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"github.com/jeruktutut2/backend-mongo-user/controller"
+	"github.com/jeruktutut2/backend-mongo-user/repository"
 	"github.com/jeruktutut2/backend-mongo-user/route"
+	"github.com/jeruktutut2/backend-mongo-user/service"
 	"github.com/jeruktutut2/backend-mongo-user/util"
 	"github.com/julienschmidt/httprouter"
 )
@@ -21,7 +23,9 @@ func main() {
 	fmt.Println("mongoDatabase:", mongoDatabase)
 
 	router := httprouter.New()
-	userController := controller.NewUserController()
+	userRepository := repository.NewUserRepository()
+	userService := service.NewUserService(mongoDatabase, userRepository)
+	userController := controller.NewUserController(userService)
 	route.UserRoute(router, userController)
 
 	server := &http.Server{
