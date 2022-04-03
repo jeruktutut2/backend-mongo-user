@@ -1,10 +1,12 @@
 package controller
 
 import (
-	"fmt"
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/jeruktutut2/backend-mongo-user/model/request"
+	"github.com/jeruktutut2/backend-mongo-user/model/response"
 	"github.com/jeruktutut2/backend-mongo-user/service"
 	"github.com/julienschmidt/httprouter"
 )
@@ -24,12 +26,12 @@ func NewUserController(userService service.UserService) UserController {
 }
 
 func (controller *UserControllerImplementation) Login(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	fmt.Println("login")
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
 	userRequestLogin := request.UserRequestLogin{}
 	request.ReadFromRequestBody(r, &userRequestLogin)
-	fmt.Println("request.UserRequestLogin:", userRequestLogin)
-	// username := request.UserRequestLogin.Username
-	// password := request.User.Password
-	// controller.UserService(r.Context(), username, password)
-
+	username := userRequestLogin.Username
+	password := userRequestLogin.Password
+	userLoginResponse := controller.UserService.Login(ctx, username, password)
+	response.ResponseHttp(w, http.StatusOK, userLoginResponse, nil)
 }

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jeruktutut2/backend-mongo-user/entity"
 	"github.com/jeruktutut2/backend-mongo-user/exception"
@@ -10,7 +9,7 @@ import (
 )
 
 type UserRepository interface {
-	GetUserByUsername(DB *mongo.Database, ctx context.Context, username string)
+	GetUserByUsername(DB *mongo.Database, ctx context.Context, username string) (user entity.User)
 }
 
 type UserRepositoryImplementation struct {
@@ -20,14 +19,9 @@ func NewUserRepository() UserRepository {
 	return &UserRepositoryImplementation{}
 }
 
-func (repository *UserRepositoryImplementation) GetUserByUsername(DB *mongo.Database, ctx context.Context, username string) {
-	cursor, err := DB.Collection("user").Find(ctx, entity.User{})
-	defer cursor.Close(ctx)
+func (repository *UserRepositoryImplementation) GetUserByUsername(DB *mongo.Database, ctx context.Context, username string) (user entity.User) {
+	result := DB.Collection("user").FindOne(ctx, entity.User{Username: username})
+	err := result.Decode(&user)
 	exception.PanicIfError(err)
-	for cursor.Next(ctx) {
-		user := entity.User{}
-		err := cursor.Decode(&user)
-		exception.PanicIfError(err)
-		fmt.Println("user:", user)
-	}
+	return user
 }
