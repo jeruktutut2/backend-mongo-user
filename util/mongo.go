@@ -2,20 +2,23 @@ package util
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"strconv"
 
+	"github.com/jeruktutut2/backend-mongo-user/configuration"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func NewMongoConnection() (mongoDatabase *mongo.Database) {
+func NewMongoConnection(configurationMongo configuration.Mongo) (mongoDatabase *mongo.Database, client *mongo.Client) {
 	credentials := options.Credential{
-		AuthSource: "backendusermongo",
-		Username:   "admin",
-		Password:   "12345",
+		AuthSource: configurationMongo.Database,
+		Username:   configurationMongo.Username,
+		Password:   configurationMongo.Password,
 	}
 	optionsClient := options.Client()
-	optionsClient.ApplyURI("mongodb://localhost:27017").SetAuth(credentials)
+	optionsClient.ApplyURI("mongodb://" + configurationMongo.Host + ":" + strconv.Itoa(configurationMongo.Port)).SetAuth(credentials)
 	client, err := mongo.NewClient(optionsClient)
 	if err != nil {
 		log.Fatal("new client connection mongo err:", err)
@@ -33,5 +36,18 @@ func NewMongoConnection() (mongoDatabase *mongo.Database) {
 	// }
 
 	mongoDatabase = client.Database("backendusermongo")
-	return mongoDatabase
+	return mongoDatabase, client
+}
+
+func CloseMongoDbConnection(client *mongo.Client) {
+
+	if client == nil {
+		return
+	}
+
+	err := client.Disconnect(context.TODO())
+	if err != nil {
+		log.Fatalf("Error close mongodb connection: %v", err)
+	}
+	fmt.Println("Connection mongodb closed")
 }

@@ -1,0 +1,10 @@
+webserver:
+  port: 10001
+  timeout: 60 # in second
+
+mongo:
+  host: localhost
+  username: admin
+  password: 12345
+  database: backendusermongo
+  port: 27017

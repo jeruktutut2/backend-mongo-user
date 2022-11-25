@@ -5,14 +5,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jeruktutut2/backend-mongo-user/model/request"
+	"github.com/jeruktutut2/backend-mongo-user/helper"
 	"github.com/jeruktutut2/backend-mongo-user/model/response"
+	"github.com/jeruktutut2/backend-mongo-user/model/web"
 	"github.com/jeruktutut2/backend-mongo-user/service"
 	"github.com/julienschmidt/httprouter"
 )
 
 type UserController interface {
-	Login(w http.ResponseWriter, r *http.Request, params httprouter.Params)
+	Login(writer http.ResponseWriter, request *http.Request, params httprouter.Params)
 }
 
 type UserControllerImplementation struct {
@@ -25,13 +26,13 @@ func NewUserController(userService service.UserService) UserController {
 	}
 }
 
-func (controller *UserControllerImplementation) Login(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+func (controller *UserControllerImplementation) Login(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
+	ctx, cancel := context.WithTimeout(request.Context(), 10*time.Second)
 	defer cancel()
-	userRequestLogin := request.UserRequestLogin{}
-	request.ReadFromRequestBody(r, &userRequestLogin)
-	username := userRequestLogin.Username
-	password := userRequestLogin.Password
+	userLoginRequest := web.UserLoginRequest{}
+	helper.ReadFromRequestBody(request, &userLoginRequest)
+	username := userLoginRequest.Username
+	password := userLoginRequest.Password
 	userLoginResponse := controller.UserService.Login(ctx, username, password)
-	response.ResponseHttp(w, http.StatusOK, userLoginResponse, nil)
+	response.ResponseHttp(writer, http.StatusOK, userLoginResponse, nil)
 }

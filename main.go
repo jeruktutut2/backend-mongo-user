@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/jeruktutut2/backend-mongo-user/configuration"
 	"github.com/jeruktutut2/backend-mongo-user/controller"
 	"github.com/jeruktutut2/backend-mongo-user/repository"
 	"github.com/jeruktutut2/backend-mongo-user/route"
@@ -19,8 +20,9 @@ import (
 )
 
 func main() {
-	mongoDatabase := util.NewMongoConnection()
-	fmt.Println("mongoDatabase:", mongoDatabase)
+	config := configuration.NewConfiguration()
+	mongoDatabase, mongoDbClient := util.NewMongoConnection(config.Mongo)
+	// fmt.Println("mongoDatabase:", mongoDatabase)
 
 	router := httprouter.New()
 	userRepository := repository.NewUserRepository()
@@ -37,6 +39,7 @@ func main() {
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
+		fmt.Println("Application ready")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		}
@@ -46,6 +49,8 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
+	util.CloseMongoDbConnection(mongoDbClient)
 
 	if err := server.Shutdown(ctx); err != nil {
 		log.Fatalf("Server shutdown failed: %+v", err)
