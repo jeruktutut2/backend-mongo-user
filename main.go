@@ -7,9 +7,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/jeruktutut2/backend-mongo-user/configuration"
 	"github.com/jeruktutut2/backend-mongo-user/controller"
 	"github.com/jeruktutut2/backend-mongo-user/repository"
@@ -22,16 +24,17 @@ import (
 func main() {
 	config := configuration.NewConfiguration()
 	mongoDatabase, mongoDbClient := util.NewMongoConnection(config.Mongo)
+	validate := validator.New()
 	// fmt.Println("mongoDatabase:", mongoDatabase)
 
 	router := httprouter.New()
 	userRepository := repository.NewUserRepository()
-	userService := service.NewUserService(mongoDatabase, userRepository)
-	userController := controller.NewUserController(userService)
+	userService := service.NewUserService(mongoDatabase, validate, userRepository)
+	userController := controller.NewUserController(config.WebServer, userService)
 	route.UserRoute(router, userController)
 
 	server := &http.Server{
-		Addr:    ":10001",
+		Addr:    ":" + strconv.Itoa(config.WebServer.Port),
 		Handler: router,
 	}
 
