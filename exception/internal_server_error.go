@@ -1,9 +1,13 @@
 package exception
 
 type InternalServerError struct {
-	Error string
+	Message string
 }
 
-func NewInternalServerError(error string) InternalServerError {
-	return InternalServerError{Error: error}
+func NewInternalServerError(message string) InternalServerError {
+	return InternalServerError{Message: message}
+}
+
+func (err InternalServerError) Error() string {
+	return "InternalServerError"
 }

@@ -1,10 +1,10 @@
 package exception
 
 type BadRequestError struct {
-	Message string
+	Message interface{}
 }
 
-func NewBadRequestError(message string) BadRequestError {
+func NewBadRequestError(message interface{}) BadRequestError {
 	return BadRequestError{Message: message}
 }
 

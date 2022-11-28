@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jeruktutut2/backend-mongo-user/exception"
@@ -32,25 +31,10 @@ func NewUserService(DB *mongo.Database, validate *validator.Validate, userReposi
 }
 
 func (service *UserServiceImplementation) Login(ctx context.Context, userLoginRequest web.UserLoginRequest) (userLoginResponse response.UserLoginResponse, err error) {
-	return userLoginResponse, exception.NewBadRequestError("bad request")
 	err = service.Validate.Struct(userLoginRequest)
+	err = exception.GetValidationErrors(err, userLoginRequest)
 	if err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		for _, fieldError := range validationErrors {
-			fmt.Println("fieldError.ActualTag():", fieldError.ActualTag())
-			fmt.Println("fieldError.Error():", fieldError.Error())
-			fmt.Println("fieldError.Field():", fieldError.Field())
-			fmt.Println("fieldError.Kind():", fieldError.Kind())
-			fmt.Println("fieldError.Namespace():", fieldError.Namespace())
-			fmt.Println("fieldError.Param():", fieldError.Param())
-			fmt.Println("fieldError.StructField():", fieldError.StructField())
-			fmt.Println("fieldError.StructNamespace():", fieldError.StructNamespace())
-			fmt.Println("fieldError.Tag():", fieldError.Tag())
-			fmt.Println("fieldError.Type():", fieldError.Type())
-			fmt.Println("fieldError.Value():", fieldError.Value())
-			fmt.Println("fieldError.Kind().String():", fieldError.Kind().String())
-			fmt.Println("fieldError.Type().Align():", fieldError.Type().Align())
-		}
+		return userLoginResponse, err
 	}
 	user, err := service.UserRepository.GetUserByUsername(service.DB, ctx, userLoginRequest.Username)
 	if err != nil {
